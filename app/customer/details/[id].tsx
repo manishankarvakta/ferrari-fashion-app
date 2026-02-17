@@ -19,11 +19,11 @@ const CustomerDetails = () => {
   const { data, refetch } = useGetCustomerByIdQuery({
     id,
     date: currentDate.toDateString(),
-    isDate:'month',
+    isDate: 'month',
     forceRefetch: true,
   });
   // console.log("customer data", data);
-  
+
 
   useEffect(() => {
     refetch();
@@ -82,14 +82,14 @@ const CustomerDetails = () => {
 
   return (
     <>
-    <StatusBar style="light" backgroundColor="#000" />
-    
-        <ScrollView className="bg-dark p-4"
-        
-               contentContainerStyle={{ paddingBottom: 360 }}
-               keyboardShouldPersistTaps="handled"
-               showsVerticalScrollIndicator={false}
-        >
+      <StatusBar style="light" backgroundColor="#000" />
+
+      <ScrollView className="bg-dark p-4"
+
+        contentContainerStyle={{ paddingBottom: 360 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Customer Info */}
         <View className="px-4 space-y-2 flex flex-row mb-4 justify-between items-center">
           <View key={data?.customer?._id} className="mb-4">
@@ -109,7 +109,10 @@ const CustomerDetails = () => {
 
           <TouchableOpacity
             disabled={!data?.customer}
-            onPress={() => router.push(`customer/customerLadger`)}
+            onPress={() => router.push({
+              pathname: '/customer/customerLadger',
+              params: { id: Array.isArray(id) ? id[0] : id }
+            })}
             className="flex flex-row items-center bg-primary px-4 py-2 rounded-lg"
           >
             <Ionicons name="book-outline" size={20} color="white" />
@@ -174,68 +177,68 @@ const CustomerDetails = () => {
                 {format(new Date(item?.createdAt), "dd MMM yyyy, h:mm a")}
               </Text>
               <Text
-              style={{
-                color:
-                  item?.type === "Recieve Payment"
-                    ? "#22c55e" // green
-                    : item?.type === "Due Sale"
-                    ? "#ef4444" // red
-                    : "#ffffff", // default white
-              }}
-              className="text-lg font-bold"
-            >
-              {item?.amount} <Text style={{ color: "orange" }}>BDT</Text>
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-  
-
-      {/* Month/Year Picker Modal (SupplierDetails style) */}
-      <Modal visible={showDatePicker} transparent animationType="fade">
-        <View className="flex-1 bg-black/70 justify-center items-center">
-          <View className="bg-black-200 rounded-2xl p-6 mx-4 w-full">
-            <Text className="text-white text-xl font-semibold mb-4">Select Month</Text>
-
-            {/* Year select */}
-            <View className="flex flex-row justify-between mb-4">
-              <TouchableOpacity onPress={() => setCurrentDate(prev => new Date(prev.getFullYear() - 1, prev.getMonth(), 1))}>
-                <Ionicons name="arrow-back" size={24} color="white" />
-              </TouchableOpacity>
-              <Text className="text-white text-xl">{currentDate.getFullYear()}</Text>
-              <TouchableOpacity onPress={() => setCurrentDate(prev => new Date(prev.getFullYear() + 1, prev.getMonth(), 1))}>
-                <Ionicons name="arrow-forward" size={24} color="white" />
-              </TouchableOpacity>
+                style={{
+                  color:
+                    item?.type === "Recieve Payment"
+                      ? "#22c55e" // green
+                      : item?.type === "Due Sale"
+                        ? "#ef4444" // red
+                        : "#ffffff", // default white
+                }}
+                className="text-lg font-bold"
+              >
+                {item?.amount} <Text style={{ color: "orange" }}>BDT</Text>
+              </Text>
             </View>
-
-            {/* Months Grid */}
-            <View className="flex flex-row flex-wrap justify-between">
-              {months.map((m, i) => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => selectMonth(i)}
-                  className={`p-4 rounded-lg mb-2 w-[28%] ${currentDate.getMonth() === i ? "bg-primary" : "bg-black-300"}`}
-                >
-                  <Text className={`text-white text-center`}>
-                    {m.slice(0, 3)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(false)}
-              className="mt-4 p-3 rounded-lg bg-gray-600"
-            >
-              <Text className="text-white text-center">Cancel</Text>
-            </TouchableOpacity>
-            {data?.transactions?.length === 0 && (
-              <Text className="text-gray-500 text-center mt-4">No transactions found for this month.</Text>
-            )}
           </View>
-        </View>
-      </Modal>
-          </ScrollView>
+        ))}
+
+
+        {/* Month/Year Picker Modal (SupplierDetails style) */}
+        <Modal visible={showDatePicker} transparent animationType="fade">
+          <View className="flex-1 bg-black/70 justify-center items-center">
+            <View className="bg-black-200 rounded-2xl p-6 mx-4 w-full">
+              <Text className="text-white text-xl font-semibold mb-4">Select Month</Text>
+
+              {/* Year select */}
+              <View className="flex flex-row justify-between mb-4">
+                <TouchableOpacity onPress={() => setCurrentDate(prev => new Date(prev.getFullYear() - 1, prev.getMonth(), 1))}>
+                  <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
+                <Text className="text-white text-xl">{currentDate.getFullYear()}</Text>
+                <TouchableOpacity onPress={() => setCurrentDate(prev => new Date(prev.getFullYear() + 1, prev.getMonth(), 1))}>
+                  <Ionicons name="arrow-forward" size={24} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Months Grid */}
+              <View className="flex flex-row flex-wrap justify-between">
+                {months.map((m, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => selectMonth(i)}
+                    className={`p-4 rounded-lg mb-2 w-[28%] ${currentDate.getMonth() === i ? "bg-primary" : "bg-black-300"}`}
+                  >
+                    <Text className={`text-white text-center`}>
+                      {m.slice(0, 3)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                className="mt-4 p-3 rounded-lg bg-gray-600"
+              >
+                <Text className="text-white text-center">Cancel</Text>
+              </TouchableOpacity>
+              {data?.transactions?.length === 0 && (
+                <Text className="text-gray-500 text-center mt-4">No transactions found for this month.</Text>
+              )}
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
     </>
   );
 };

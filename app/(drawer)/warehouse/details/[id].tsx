@@ -1,4 +1,4 @@
-import { useWarehouseQuery } from "@/store/api/warehouseApi";
+import { useWarehouseAccountsQuery } from "@/store/api/warehouseApi";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { addDays, format, isToday, subDays } from "date-fns";
@@ -30,17 +30,20 @@ const WarehouserDetails = () => {
   const [tempDate, setTempDate] = useState(new Date());
 
   // Warehouse data fetching
- const { data, isLoading, refetch, isSuccess } = useWarehouseQuery({
-  _id: id,
-  date: currentDay.toISOString(),
-});
-  
+  const { data, isLoading, refetch, isSuccess } = useWarehouseAccountsQuery({
+    _id: id,
+    date: format(currentDay, "MM-dd-yyyy"),
+  }, { skip: !id });
+
   // console.log('warehouse data', id, data)
 
   // Whenever data changes, update transactions
   useEffect(() => {
-    if (data?.transactions && Array.isArray(data.transactions)) {
-      setTransactions(data.transactions);
+    const d = data as any;
+    if (d?.transactions && Array.isArray(d.transactions)) {
+      setTransactions(d.transactions);
+    } else if (d?.transaction && Array.isArray(d.transaction)) {
+      setTransactions(d.transaction);
     }
   }, [data, isSuccess]);
 
@@ -56,10 +59,8 @@ const WarehouserDetails = () => {
     }, [id])
   );
 
-  // Filter transactions by selected day
-  const dayTransactions = transactions.filter(
-    (t) => t.date === format(currentDay, "yyyy-MM-dd")
-  );
+  // Filter transactions by selected day (if needed, but API usually handles this)
+  const dayTransactions = transactions;
 
   const formattedDate = {
     day: currentDay.getDate(),
@@ -122,27 +123,27 @@ const WarehouserDetails = () => {
       headerShown: true,
     });
   }, [navigation, id]);
- 
+
   const renderHeader = () => (
     <View>
       <View className=" p-4 space-x-2">
         <View className="flex flex-row">
           <View className="flex flex-row justify-center items-center mb-1">
-            {data?.type === "factory" ? (
+            {((data as any)?.warehouse?.type || (data as any)?.type) === "factory" ? (
               <MaterialIcons name="factory" size={22} color="#fdb714" className="me-2" />
             ) : (
               <MaterialIcons name="storefront" size={22} color="#fdb714" className="me-2" />
             )}
-            <Text className="text-gray-200 text-lg">{data?.warehouse?.name}</Text>
+            <Text className="text-gray-200 text-lg">{(data as any)?.warehouse?.name || (data as any)?.name}</Text>
           </View>
         </View>
         <View className="flex flex-row">
           <Ionicons name="phone-portrait-sharp" size={18} color={"#fdb714"} />
-          <Text className="text-gray-200 text-[18px] ms-2">{data?.warehouse?.phone}</Text>
+          <Text className="text-gray-200 text-[18px] ms-2">{(data as any)?.warehouse?.phone || (data as any)?.phone}</Text>
         </View>
         <View className="flex flex-row items-center">
           <Ionicons name="location-outline" size={18} color={"#fdb714"} />
-          <Text className="text-gray-400 p-1 ms-2">{data?.warehouse?.address}</Text>
+          <Text className="text-gray-400 p-1 ms-2">{(data as any)?.warehouse?.address || (data as any)?.address}</Text>
         </View>
       </View>
 
@@ -181,41 +182,41 @@ const WarehouserDetails = () => {
         <View className="flex bg-black-200 items-center justify-center p-5 text-center rounded-lg m-1">
           <Text className="text-gray-200 text-2xl p-3">Current Balance</Text>
           <Text className="text-primary font-bold text-center text-xl">
-            {data?.warehouse?.currentBalance ?? 0}
+            {(data as any)?.warehouse?.currentBalance ?? (data as any)?.currentBalance ?? 0}
           </Text>
         </View>
       </View>
       <View className="flex flex-row flex-wrap justify-between">
 
-             {/* Summary Cards   */}
+        {/* Summary Cards   */}
 
-      {/* <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
+        {/* <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
         <Text className="text-gray-200">Total Product</Text>
         <Text className="text-white text-xl font-bold">{data?.warehouse?.totalProducts ?? 0}</Text>
       </View> */}
 
-      
 
-      <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
-        <Text className="text-gray-200">Supplier Due</Text>
-      <Text className="text-white text-xl font-bold">{
-        data?.warehouse?.totalPurchase && data?.warehouse?.totalPayment
-        ? (data?.warehouse?.totalPurchase > 0 ? data?.warehouse?.totalPurchase : 0) - (data?.warehouse?.totalPayment > 0 ? data?.warehouse?.totalPayment : 0) 
-        : 0
-        }</Text>
-      </View>
 
-      <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
-        <Text className="text-gray-200">Customer Due</Text>
-        <Text className="text-white text-xl font-bold">
-          {
-        data?.warehouse?.totalSale && data?.warehouse?.totalPaymentReceived
-        ? (data?.warehouse?.totalSale > 0 ? data?.warehouse?.totalSale : 0) - (data?.warehouse?.totalPaymentReceived > 0 ? data?.warehouse?.totalPaymentReceived : 0) 
-        : 0
-        }
-        </Text>
+        <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
+          <Text className="text-gray-200">Supplier Due</Text>
+          <Text className="text-white text-xl font-bold">{
+            (data as any)?.warehouse?.totalPurchase && (data as any)?.warehouse?.totalPayment
+              ? ((data as any)?.warehouse?.totalPurchase > 0 ? (data as any)?.warehouse?.totalPurchase : 0) - ((data as any)?.warehouse?.totalPayment > 0 ? (data as any)?.warehouse?.totalPayment : 0)
+              : 0
+          }</Text>
+        </View>
+
+        <View className="w-[48%] p-2 bg-black-200 rounded-lg mb-3">
+          <Text className="text-gray-200">Customer Due</Text>
+          <Text className="text-white text-xl font-bold">
+            {
+              (data as any)?.warehouse?.totalSale && (data as any)?.warehouse?.totalPaymentReceived
+                ? ((data as any)?.warehouse?.totalSale > 0 ? (data as any)?.warehouse?.totalSale : 0) - ((data as any)?.warehouse?.totalPaymentReceived > 0 ? (data as any)?.warehouse?.totalPaymentReceived : 0)
+                : 0
+            }
+          </Text>
+        </View>
       </View>
-</View>
 
     </View>
   );
@@ -224,20 +225,20 @@ const WarehouserDetails = () => {
   if (!data) return <Text className="text-center mt-4 text-gray-400">No data found</Text>;
 
   return (
-    <>
+    <View style={{ flex: 1 }} className="bg-dark">
       <StatusBar style="light" backgroundColor="#1f2937" />
 
 
-      
+
       <FlatList
-        data={data?.transaction}
-        keyExtractor={(item, index) => item._id}
+        data={transactions}
+        keyExtractor={(item, index) => item._id || index.toString()}
         renderItem={({ item }) => (
           <View className="bg-black p-4 rounded-lg mt-4 mx-4 h-20 flex justify-between">
             <Text className="text-white text-xl">{item.type}</Text>
             <View className="flex flex-row justify-between items-center">
               <Text className="text-white text-md">
-              {format(new Date(item?.createdAt), "dd MMM yyyy, h:mm a")}
+                {format(new Date(item?.createdAt), "dd MMM yyyy, h:mm a")}
               </Text>
               <Text className="text-primary text-lg font-bold">{item.amount} <Text className="text-white">BDT</Text></Text>
             </View>
@@ -248,7 +249,7 @@ const WarehouserDetails = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
 
-      
+
       <Modal visible={showDatePicker} transparent={true} animationType="fade">
         <View className="flex-1 bg-black/70 justify-center items-center">
           <View className="bg-black-200 rounded-2xl p-6 mx-4 w-full">
@@ -280,7 +281,7 @@ const WarehouserDetails = () => {
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 };
 

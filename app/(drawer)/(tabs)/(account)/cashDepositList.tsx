@@ -10,7 +10,7 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   Modal,
   Platform,
-  ScrollView,
+  FlatList,
   Text,
   TextInput,
   TouchableOpacity,
@@ -62,14 +62,32 @@ const CashDepositList = () => {
     });
   }, [navigation]);
 
+  const hasWarehouse = !!userInfo?.warehouse && userInfo.warehouse.trim() !== '';
   const { data, isSuccess, isLoading, error, isError, refetch } =
     useTransactionListQuery({
-      warehouse: userInfo?.warehouse,
+      warehouse: userInfo?.warehouse || 'placeholder',
       type: "deposit",
-      date: format(currentDay, "MM-dd-yyyy"),
+      date: currentDay ? format(currentDay, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
       forceRefetch: true,
+    }, {
+      skip: !hasWarehouse || !currentDay
     });
-  // console.log('deposit data',data);
+
+  useEffect(() => {
+    console.log("CASH DEPOSIT DEBUG:", {
+      hasWarehouse,
+      warehouse: userInfo?.warehouse,
+      currentDay: format(currentDay, "MM-dd-yyyy"),
+      isLoading,
+      isSuccess,
+      isError,
+      error,
+      data: data ? (Array.isArray(data) ? `Array(${data.length})` : "Object") : "null/undefined"
+    });
+    if (data) {
+      console.log("CASH DEPOSIT RAW DATA:", JSON.stringify(data).substring(0, 200));
+    }
+  }, [data, isLoading, isSuccess, isError, error, userInfo?.warehouse]);
 
   useEffect(() => {
     if (userInfo?.warehouse) {
@@ -108,12 +126,14 @@ const CashDepositList = () => {
   };
 
   const [search, setSearch] = useState("");
-  const filteredList = depositList.filter(
-    (item) =>
-      item?.name?.toLowerCase()?.includes(search.toLowerCase()) ||
-      item?.amount?.toString()?.includes(search) ||
-      item?.date?.includes(search),
-  );
+  const filteredList = depositList.filter((item) => {
+    const term = search.toLowerCase();
+    const nameMatch = item?.name?.toLowerCase()?.includes(term);
+    const amountMatch = item?.amount?.toString()?.includes(term);
+    const dateMatch =
+      item?.date && format(new Date(item.date), "dd-MM-yyyy").includes(term);
+    return nameMatch || amountMatch || dateMatch || search === "";
+  });
 
   // Date navigation functions
   const goToPreviousDay = () => {
@@ -152,153 +172,178 @@ const CashDepositList = () => {
   };
 
   // console.log("SUMMARY", (data as any)?.summary);
+  const typeLabels: Record<string, string> = {
+    deposit: "Cash In",
+    cashOut: "Cash Out",
+    payment: "Payment",
+    paymentReceived: "Payment Received",
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
+    <View className="mt-4 mx-4">
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: "/cashDepositDetails",
+            params: { _id: item?._id },
+          })
+        }
+        className="flex-row justify-between bg-black-200 rounded-xl p-4 items-center"
+      >
+        <View className="flex flex-col items-start">
+          <Text className="text-lg font-medium text-primary">
+            {item.name || "N/A"}
+          </Text>
+          <Text className="text-sm text-gray-200">
+            {item?.date && format(new Date(item?.date), "dd-MM-yyyy")}
+          </Text>
+        </View>
+        <View>
+          <Text className="text-sm text-primary">
+            {typeLabels[item.type] || item.type}
+          </Text>
+          <Text className="text-lg text-primary">
+            ৳{item.amount?.toLocaleString()}{" "}
+            <Text className="text-white">BDT</Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <>
       <StatusBar style="light" backgroundColor="#000" />
-      <ScrollView>
-        {/* calendar */}
+      <FlatList
+        data={filteredList}
+        keyExtractor={(item) => item._id || Math.random().toString()}
+        renderItem={renderItem}
+        ListHeaderComponent={
+          <>
+            {/* calendar */}
+            <View className="mt-2 mb-2">
+              <View className="flex flex-row justify-between items-center bg-black-200 mx-4  p-2 rounded-lg">
+                <TouchableOpacity onPress={goToPreviousDay} className="p-2">
+                  <Ionicons name="arrow-back" size={24} color="white" />
+                </TouchableOpacity>
 
-        <View className="mt-2 mb-2">
-          <View className="flex flex-row justify-between items-center bg-black-200 mx-4  p-2 rounded-lg">
-            <TouchableOpacity onPress={goToPreviousDay} className="p-2">
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={openDatePicker}
+                  className="flex flex-row items-center px-4  rounded-lg"
+                >
+                  <Text className="text-white text-lg me-2">
+                    {formattedDate.day}
+                  </Text>
+                  <Text className="text-primary text-lg">
+                    {formattedDate.month}
+                  </Text>
+                  <Text className="text-white text-lg ml-2">
+                    {formattedDate.year}
+                  </Text>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color="#fdb714"
+                    className="ml-2"
+                  />
+                </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={openDatePicker}
-              className="flex flex-row items-center px-4  rounded-lg"
-            >
-              <Text className="text-white text-lg me-2">{formattedDate.day}</Text>
-              <Text className="text-primary text-lg">
-                {formattedDate.month}
-              </Text>
-              <Text className="text-white text-lg ml-2">
-                {formattedDate.year}
-              </Text>
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color="#fdb714"
-                className="ml-2"
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={goToNextDay}
-              disabled={isToday(currentDay)}
-              className={`p-2 ${isToday(currentDay) ? "opacity-50" : ""}`}
-            >
-              <Ionicons
-                name="arrow-forward"
-                size={24}
-                color={isToday(currentDay) ? "#666" : "white"}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Date Picker Modal */}
-        <Modal visible={showDatePicker} transparent={true} animationType="fade">
-          <View className="flex-1 bg-black/70 justify-center items-center">
-            <View className="bg-black-200 rounded-2xl p-6 mx-4 w-full">
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-white text-xl font-semibold">
-                  Select Date
-                </Text>
-                <TouchableOpacity onPress={cancelDateSelection}>
-                  <Ionicons name="close" size={24} color="#666" />
+                <TouchableOpacity
+                  onPress={goToNextDay}
+                  disabled={isToday(currentDay)}
+                  className={`p-2 ${isToday(currentDay) ? "opacity-50" : ""}`}
+                >
+                  <Ionicons
+                    name="arrow-forward"
+                    size={24}
+                    color={isToday(currentDay) ? "#666" : "white"}
+                  />
                 </TouchableOpacity>
               </View>
+            </View>
 
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={handleDateChange}
-                maximumDate={new Date()}
-                textColor="#ffffff"
+            {/* Date Picker Modal */}
+            <Modal
+              visible={showDatePicker}
+              transparent={true}
+              animationType="fade"
+            >
+              <View className="flex-1 bg-black/70 justify-center items-center">
+                <View className="bg-black-200 rounded-2xl p-6 mx-4 w-full">
+                  <View className="flex-row justify-between items-center mb-6">
+                    <Text className="text-white text-xl font-semibold">
+                      Select Date
+                    </Text>
+                    <TouchableOpacity onPress={cancelDateSelection}>
+                      <Ionicons name="close" size={24} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <DateTimePicker
+                    value={tempDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={handleDateChange}
+                    maximumDate={new Date()}
+                    textColor="#ffffff"
+                    style={{
+                      backgroundColor: "transparent",
+                      width: Platform.OS === "ios" ? "100%" : "auto",
+                    }}
+                  />
+
+                  {Platform.OS === "ios" && (
+                    <View className="flex-row justify-end gap-2 space-x-3 mt-6">
+                      <TouchableOpacity
+                        onPress={cancelDateSelection}
+                        className="px-6 py-3 rounded-lg bg-gray-600"
+                      >
+                        <Text className="text-white font-semibold">Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={confirmDateSelection}
+                        className="px-6 py-3 rounded-lg bg-primary"
+                      >
+                        <Text className="text-black font-semibold">
+                          Confirm
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </Modal>
+
+            <View className="bg-zinc-800 mb-2 text-white h-14 rounded-full flex-row items-center px-6 m-2 ">
+              <TextInput
+                className="ml-2 flex-1 text-white"
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Search by name, amount, or date"
+                placeholderTextColor="#d1d5db"
                 style={{
                   backgroundColor: "transparent",
-                  width: Platform.OS === "ios" ? "100%" : "auto",
+                  borderWidth: 0,
+                  width: "100%",
                 }}
               />
-
-              {Platform.OS === "ios" && (
-                <View className="flex-row justify-end gap-2 space-x-3 mt-6">
-                  <TouchableOpacity
-                    onPress={cancelDateSelection}
-                    className="px-6 py-3 rounded-lg bg-gray-600"
-                  >
-                    <Text className="text-white font-semibold">Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={confirmDateSelection}
-                    className="px-6 py-3 rounded-lg bg-primary"
-                  >
-                    <Text className="text-black font-semibold">Confirm</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <Ionicons name="search" size={20} color="#fdb714" />
             </View>
-          </View>
-        </Modal>
-
-        <View className="bg-zinc-800 mb-2 text-white h-14 rounded-full flex-row items-center px-6 m-2 ">
-          <TextInput
-            className="ml-2 flex-1 text-white"
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Search by name, amount, or date"
-            placeholderTextColor="#d1d5db"
-            style={{
-              backgroundColor: "transparent",
-              // color: "primary",
-              borderWidth: 0,
-              width: "100%",
-            }}
-          />
-          <Ionicons name="search" size={20} color="#fdb714" />
-        </View>
-
-        {filteredList?.length > 0 ? (
-          filteredList?.map((item) => (
-            <View key={item._id} className="mt-4">
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/cashDepositDetails",
-                    params: { _id: item?._id },
-                  })
-                }
-                className="flex-row justify-between bg-black-200 rounded-xl p-4 items-center"
-              >
-                <View className="flex flex-col items-start">
-                  <Text className="text-lg font-medium text-primary">
-                    {item.name}
-                  </Text>
-                  <Text className="text-sm text-gray-200">
-                    {item?.date && format(new Date(item?.date), "dd-MM-yyyy")}
-                  </Text>
-                </View>
-                <View>
-                  <Text className="text-sm text-primary">{item.type}</Text>
-                  <Text className="text-lg text-primary">
-                    {item.amount} <Text className="text-white">BDT</Text>
-                  </Text>
-                </View>
-              </TouchableOpacity>
+          </>
+        }
+        ListEmptyComponent={
+          !isLoading ? (
+            <View className="flex-1 h-96 w-full justify-center items-center mt-10">
+              <Ionicons name="save-outline" size={60} color="gray" />
+              <Text className="text-primary text-lg mt-4">No data found</Text>
+              <Text className="text-white text-sm">
+                Please select a different date
+              </Text>
             </View>
-          ))
-        ) : (
-          <View className="flex-1 h-96 w-full justify-center items-center mt-10">
-            <Ionicons name="save-outline" size={60} color="gray" />
-            <Text className="text-primary text-lg mt-4">No data found</Text>
-            <Text className="text-white text-sm">
-              Please select a different date
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+          ) : null
+        }
+        contentContainerStyle={{ paddingBottom: 40 }}
+      />
     </>
   );
 };

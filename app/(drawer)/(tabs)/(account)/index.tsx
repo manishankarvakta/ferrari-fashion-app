@@ -5,7 +5,7 @@ import { useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 // // import { useColorScheme } from "react-native";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useTransactionListQuery } from "@/store/api/transactionApi";
@@ -13,6 +13,7 @@ import { useWarehouseQuery } from "@/store/api/warehouseApi";
 import { format } from "date-fns";
 import { StatusBar } from "expo-status-bar";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useDashbordQuery } from "@/store/api/dashbordApi";
 
 
 
@@ -48,15 +49,17 @@ const Accounts = () => {
       headerShown: true,
     });
   }, [navigation]);
+  const { data: warehousedata } = useWarehouseQuery(userInfo?.warehouse, { skip: !userInfo?.warehouse });
+  console.log('warehousedata', warehousedata)
   // cash deposit data fetch
   const { data, isSuccess, isLoading, error, isError, refetch } =
     useTransactionListQuery({
       warehouse: userInfo?.warehouse,
       type: "deposit",
-      date: format(currentDay, "MM-dd-yyyy"),
+      date: currentDay ? format(currentDay, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
       forceRefetch: true,
     }, {
-      skip: !userInfo?.warehouse
+      skip: !userInfo?.warehouse || !currentDay
     });
   const totalDepositAmount = data?.transactions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
 
@@ -66,10 +69,10 @@ const Accounts = () => {
     useTransactionListQuery({
       warehouse: userInfo?.warehouse,
       type: "cashOut",
-      date: format(currentDay, "MM-dd-yyyy"),
+      date: currentDay ? format(currentDay, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
       forceRefetch: true,
     }, {
-      skip: !userInfo?.warehouse
+      skip: !userInfo?.warehouse || !currentDay
     });
   const totalCashOutAmount = cashOutData?.transactions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
 
@@ -78,10 +81,10 @@ const Accounts = () => {
     useTransactionListQuery({
       warehouse: userInfo?.warehouse,
       type: "payment",
-      date: format(currentDay, "MM-dd-yyyy"),
+      date: currentDay ? format(currentDay, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
       forceRefetch: true,
     }, {
-      skip: !userInfo?.warehouse
+      skip: !userInfo?.warehouse || !currentDay
     });
   const totalPaymentAmount = paymentData?.transactions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
 
@@ -90,21 +93,46 @@ const Accounts = () => {
     useTransactionListQuery({
       warehouse: userInfo?.warehouse,
       type: "paymentReceived",
-      date: format(currentDay, "MM-dd-yyyy"),
+      date: currentDay ? format(currentDay, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
       forceRefetch: true,
     }, {
-      skip: !userInfo?.warehouse
+      skip: !userInfo?.warehouse || !currentDay
     });
   const totalReceivedPaymentAmount = receivedPaymentData?.transactions?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
 
 
   const { data: warehouseInfo } = useWarehouseQuery(userInfo?.warehouse, { skip: !userInfo?.warehouse });
-  const Balance = warehouseInfo?.currentBalance || 0;
+  console.log('warehouseInfo', warehouseInfo)
+  const cashIn = warehouseInfo?.totalCashIn || 0;
+  const cashOut = warehouseInfo?.totalCashOut || 0;
+  const Balance = cashIn - cashOut;
 
   useEffect(() => {
     setOpeningBalance(Balance);
     setCurrentBalance(Balance);
   }, [Balance]);
+
+  const { data: dashboardData } = useDashbordQuery(
+    { warehouse: userInfo?.warehouse, date: format(currentDay, "MM-dd-yyyy"), type: type } as any,
+    { skip: !userInfo } // Skip query until userInfo is available
+  );
+
+  const pettyCashData = useMemo(() => {
+    if (!dashboardData?.accountsData) return null;
+
+    const totalDeposit = dashboardData.accountsData.deposit?.totalAmount || 0;
+    const totalCashOut = dashboardData.accountsData.cashOut?.totalAmount || 0;
+    const balance = totalDeposit - totalCashOut;
+
+    return {
+      summary: {
+        totalDeposit,
+        totalCashOut,
+        balance
+      }
+    };
+  }, [dashboardData]);
+
 
   return (
 
@@ -190,7 +218,8 @@ const Accounts = () => {
             </TouchableOpacity>
           </View>
 
-
+          {/* Lifetime Petty Cash Summary */}
+          {/*  */}
 
           <TouchableOpacity
             onPress={() => router.push("/(account)/warehouseBalance")}

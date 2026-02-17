@@ -53,21 +53,32 @@ const SignIn = () => {
           setLoggedIn(true);
           storeData("user", decodedToken);
           dispatch(setUserInfo({ ...decodedToken, isLoggedIn: true }));
-          // console.log("user:", decodedToken);
-          // setUser(decodedToken);
           router.push("/(drawer)/(tabs)");
         } else {
           // Custom error handling
+          const errorObj = result?.error;
           const errorMessage =
-            result?.error?.data?.error ||
+            errorObj?.data?.error ||
+            errorObj?.error ||
+            errorObj?.message ||
             "An unknown error occurred. Please try again.";
-          Alert.alert("Error", errorMessage);
+
+          const displayMessage = typeof errorMessage === 'string'
+            ? errorMessage
+            : JSON.stringify(errorMessage);
+
+          Alert.alert("Error", displayMessage);
         }
       } catch (error) {
         console.log("LOGIN CATCH ERROR:", error);
         const errorMessage =
           error?.message || "Something went wrong. Please try again later.";
-        Alert.alert("Error", errorMessage);
+
+        const displayMessage = typeof errorMessage === 'string'
+          ? errorMessage
+          : JSON.stringify(errorMessage);
+
+        Alert.alert("Error", displayMessage);
       } finally {
         setSubmitting(false);
       }
@@ -87,7 +98,7 @@ const SignIn = () => {
             minHeight: Dimensions.get("window").height + 200,
           }}
         >
-          
+
           <View className="bg-dark px-8  pb-10 ">
             <View className="flex w-full justify-start items-center">
               <Image className="h-36 w-36" source={logo} />

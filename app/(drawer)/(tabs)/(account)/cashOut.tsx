@@ -1,8 +1,8 @@
 import photo from "@/assets/images/Invoice.jpg";
 import PhotoUploader from "@/components/PhotoUploader";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { useAddBalanceTransactionMutation } from "@/store/api/transactionApi";
-import { useWarehouseQuery } from "@/store/api/warehouseApi";
+import { useAddTransactionMutation } from "@/store/api/transactionApi";
+import { useUpdateWarehouseMutation, useWarehouseQuery } from "@/store/api/warehouseApi";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
@@ -28,7 +28,8 @@ const CashOut = () => {
 
   const type = userInfo?.type
 
-  const [createTransaction] = useAddBalanceTransactionMutation();
+  const [createTransaction] = useAddTransactionMutation();
+  const [updateWarehouse] = useUpdateWarehouseMutation();
 
 
   // Form state
@@ -206,11 +207,21 @@ const CashOut = () => {
 
   const handleSubmit = async () => {
     try {
-      await createTransaction(formData as any).unwrap();
+      const payload = {
+        ...formData,
+        date: formData.date.toISOString(),
+      };
+
+      const response = await createTransaction(payload as any).unwrap();
+      console.log("Transaction response:", response);
+
+      router.back();
     } catch (error) {
-      // error handling
+      console.error("Error creating cashOut:", error);
+      const errorMessage = error?.data?.error || error?.message || "Failed to create transaction. Please try again.";
+      const displayMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+      Alert.alert("Error", displayMessage);
     }
-    router.back();
   };
 
   const formatDate = (date: Date) => {

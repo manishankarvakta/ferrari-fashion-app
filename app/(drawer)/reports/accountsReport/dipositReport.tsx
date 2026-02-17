@@ -17,7 +17,7 @@ export default function CashInReport() {
   const { userInfo } = useGlobalContext();
 
   const { data: warehousesData } = useWarehousesQuery();
-   const [warehouses, setWarehouses] = useState<WarehouseTypes[]>([]);
+  const [warehouses, setWarehouses] = useState<WarehouseTypes[]>([]);
   const [fromDate, setFromDate] = useState<Date>(new Date());
   const [toDate, setToDate] = useState<Date>(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -30,6 +30,11 @@ export default function CashInReport() {
 
   const { data } = useWarehouseQuery(userInfo?.warehouse);
 
+  // warehouse role
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(
+    userInfo.role === "userInfo" ? userInfo.warehouse : null
+  );
+
   const {
     data: cashDeposit,
     isSuccess,
@@ -38,31 +43,35 @@ export default function CashInReport() {
     isError,
     refetch,
   } = useTransactionListQuery({
-    warehouse: userInfo?.warehouse,
+    warehouse: selectedWarehouse || userInfo?.warehouse,
     type: "deposit",
-    date: format(currentDay, "MM-dd-yyyy"),
+    startDate: format(fromDate, "MM-dd-yyyy"),
+    endDate: format(toDate, "MM-dd-yyyy"),
     forceRefetch: true,
+  }, {
+    skip: (!selectedWarehouse && !userInfo?.warehouse) || !fromDate || !toDate
   });
 
   useEffect(() => {
     refetch();
   }, [cashDeposit]);
 
-  // warehouse role
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(
-    userInfo.role === "userInfo" ? userInfo.warehouse : null
-  );
-
   // Set warehouses after fetch
-useEffect(() => {
+  useEffect(() => {
     if (warehousesData) {
       setWarehouses(warehousesData);
       if (userInfo.role === "admin" && warehousesData.length > 0) {
-        setSelectedWarehouse(warehousesData[0]._id);
+        setSelectedWarehouse(warehousesData[0]._id || null);
       }
     }
   }, [warehousesData]);
-  
+
+
+  const selectedWarehouseName = React.useMemo(() => {
+    if (!selectedWarehouse) return "All Warehouses";
+    const wh = warehouses.find(w => w._id === selectedWarehouse);
+    return wh ? wh.name : "Unknown Warehouse";
+  }, [selectedWarehouse, warehouses]);
 
   // Header with print button
   useLayoutEffect(() => {
@@ -81,23 +90,25 @@ useEffect(() => {
         <PrintButton
           filteredData={cashDeposit?.transactions || []}
           title="Cash Deposit Report"
+          subtitle={`Warehouse: ${selectedWarehouseName}`}
         />),
     });
-  }, [navigation, cashDeposit]);
+  }, [navigation, cashDeposit, selectedWarehouseName]);
 
   // Filter data by role, warehouse, and date
   const totalCashIn = cashDeposit?.transactions?.length || 0;
   const totalAmount =
     cashDeposit?.transactions?.reduce(
-      (sum, item) => sum + (item.amount || 0),
+      (sum: number, item: any) => sum + (item.amount || 0),
       0
     ) || 0;
-     useEffect(() => {
-              if (userInfo && selectedWarehouse) {
-                refetch();
-              }
-            }, [selectedWarehouse]);
-    if (!warehousesData) return null;
+  // refetch handled by hook args change
+  // useEffect(() => {
+  //   if (userInfo && selectedWarehouse) {
+  //     refetch();
+  //   }
+  // }, [selectedWarehouse, fromDate, toDate]);
+  if (!warehousesData) return null;
 
   return (
     <>
@@ -107,17 +118,17 @@ useEffect(() => {
         <View className="flex-row justify-between items-center mb-4">
           {userInfo?.type === "admin" && warehouses?.length > 0 && (
             <Dropdown
-                        data={warehouses.map((wh) => ({ label: wh.name, value: wh._id }))}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="Select Warehouse"
-                        value={selectedWarehouse}
-                        onChange={(item: any) => setSelectedWarehouse(item.value)}
-                        placeholderStyle={{ color: "white" }}
-                        style={{ backgroundColor: "#1f1f1f", borderRadius: 8, padding: 8, width: 180, height: 45 }}
-                        selectedTextStyle={{ color: "white" }}
-                        itemTextStyle={{ color: "black" }}
-                      />
+              data={warehouses.map((wh) => ({ label: wh.name, value: wh._id }))}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Warehouse"
+              value={selectedWarehouse}
+              onChange={(item: any) => setSelectedWarehouse(item.value)}
+              placeholderStyle={{ color: "white" }}
+              style={{ backgroundColor: "#1f1f1f", borderRadius: 8, padding: 8, width: 180, height: 45 }}
+              selectedTextStyle={{ color: "white" }}
+              itemTextStyle={{ color: "black" }}
+            />
           )}
 
           {/* From / To Dates */}
@@ -189,7 +200,7 @@ useEffect(() => {
         <FlatList
           data={cashDeposit?.transactions || []}
           keyExtractor={(item, index) =>
-            item?.id?.toString() || index.toString()
+            item?._id?.toString() || item?.id?.toString() || index.toString()
           }
           renderItem={({ item }) => (
             <View className="bg-black-200 p-4 rounded-xl mb-3">

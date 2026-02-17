@@ -159,7 +159,7 @@ const { data: productData, error, isLoding } =
       
       <FlatList
         data={productData || []}
-        keyExtractor={(item) => item?.id}
+        keyExtractor={(item) => item?._id}
         renderItem={({ item }) => (
           <View className="bg-black-200 p-4 rounded-xl mb-3">
             <Text className="text-gray-200 text-xl">{item?.style}</Text>

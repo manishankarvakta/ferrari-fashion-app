@@ -106,56 +106,57 @@ const StockOut = () => {
       )}
 
       {/* Form */}
-      <View className="flex-1 px-6 pt-8">
-        {/* Stock Quantity Input */}
-        <View className="mb-6">
-          <Text className="text-gray-300 text-lg font-medium mb-3">
-            Stock Quantity to Remove
-          </Text>
-          <TextInput
-            className="border border-black-200 text-gray-300 bg-black-200 rounded-lg p-4 text-lg text-center"
-            value={stockItem.stock.toString()}
-            onChangeText={(value) =>
-              dispatch(updateStockQuantity(parseInt(value)))
-            }
-            placeholder="Enter quantity"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            autoFocus={true}
-          />
-        </View>
+      <ScrollView className="flex-1">
+        <View className="flex-1 px-6 pt-8">
+          {/* Stock Quantity Input */}
+          <View className="mb-6">
+            <Text className="text-gray-300 text-lg font-medium mb-3">
+              Stock Quantity to Remove
+            </Text>
+            <TextInput
+              className="border border-black-200 text-gray-300 bg-black-200 rounded-lg p-4 text-lg text-center"
+              value={stockItem.stock.toString()}
+              onChangeText={(value) =>
+                dispatch(updateStockQuantity(parseInt(value)))
+              }
+              placeholder="Enter quantity"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+              autoFocus={true}
+            />
+          </View>
 
-        {/* Note Input */}
-        <View className="mb-8">
-          <Text className="text-gray-300 text-lg font-medium mb-3">Note</Text>
-          <TextInput
-            multiline={true}
-            numberOfLines={4}
-            className="border border-black-200 text-gray-300 bg-black-200 rounded-lg p-4 text-base text-left min-h-[120px]"
-            value={stockItem.note}
-            onChangeText={(value) => dispatch(updateNote(value))}
-            placeholder="Enter your note here..."
-            placeholderTextColor="#9CA3AF"
-            textAlignVertical="top"
-          />
-        </View>
+          {/* Note Input */}
+          <View className="mb-8">
+            <Text className="text-gray-300 text-lg font-medium mb-3">Note</Text>
+            <TextInput
+              multiline={true}
+              numberOfLines={4}
+              className="border border-black-200 text-gray-300 bg-black-200 rounded-lg p-4 text-base text-left min-h-[120px]"
+              value={stockItem.note}
+              onChangeText={(value) => dispatch(updateNote(value))}
+              placeholder="Enter your note here..."
+              placeholderTextColor="#9CA3AF"
+              textAlignVertical="top"
+            />
+          </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity
-          className={`w-full p-4 rounded-lg ${
-            isLoading || !stockItem.stock || !stockItem.note.trim()
-              ? "bg-gray-400"
-              : "bg-red-600"
-          }`}
-          onPress={handleSubmit}
-          disabled={isLoading || !stockItem.stock || !stockItem.note.trim()}
-          activeOpacity={0.8}
-        >
-          <Text className="text-white text-center font-bold text-md">
-            {isLoading ? "Removing Stock..." : "Stock Out"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Submit Button */}
+          <TouchableOpacity
+            className={`w-full p-4 rounded-lg mb-10 ${isLoading || !stockItem.stock || !stockItem.note.trim()
+                ? "bg-gray-400"
+                : "bg-red-600"
+              }`}
+            onPress={handleSubmit}
+            disabled={isLoading || !stockItem.stock || !stockItem.note.trim()}
+            activeOpacity={0.8}
+          >
+            <Text className="text-white text-center font-bold text-md">
+              {isLoading ? "Removing Stock..." : "Stock Out"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };

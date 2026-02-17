@@ -21,55 +21,47 @@ export default function CashInReport() {
   const { data: warehousesData } = useWarehousesQuery();
   const [warehouses, setWarehouses] = useState<WarehouseTypes[]>([]);
 
-  
-//   const [cashInData, setCashInData] = useState<any[]>([]); // backend data
+
+  //   const [cashInData, setCashInData] = useState<any[]>([]); // backend data
   const [fromDate, setFromDate] = useState<Date>(new Date());
   const [toDate, setToDate] = useState<Date>(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-const formatDateString = (date: Date) => date.toISOString().split("T")[0];
+  const formatDateString = (date: Date) => date.toISOString().split("T")[0];
 
-// replace this
-// const selectedDateString = formatDate(selectedDate);
-const selectedDateString = formatDateString(fromDate);
+  // replace this
+  // const selectedDateString = formatDate(selectedDate);
+  const selectedDateString = formatDateString(fromDate);
 
-const {data: cashInData, isLoading, refetch} = useTransactionListQuery({ warehouse: "w1", type: "payment", date: selectedDateString })
-console.log("CashInData:", cashInData);
-
- useEffect(()=>{
-    refetch()
- },[cashInData])
-// warehouse  role
+  // warehouse  role
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(
-    currentUser.role === "user" ? currentUser.warehouse : null
+    currentUser.role === "admin" ? null : currentUser.warehouse
   );
+
+  const { data: cashInData, isLoading, refetch } = useTransactionListQuery({
+    warehouse: selectedWarehouse ?? "all",
+    type: "deposit",
+    date: fromDate ? format(fromDate, "MM-dd-yyyy") : format(new Date(), "MM-dd-yyyy"),
+    startDate: format(fromDate, "MM-dd-yyyy"),
+    endDate: format(toDate, "MM-dd-yyyy")
+  }, {
+    skip: !fromDate || !toDate
+  })
+  console.log("CashInData:", cashInData);
+
+  useEffect(() => {
+    refetch()
+  }, [selectedWarehouse, fromDate, toDate])
   // Set warehouses after fetch
   useEffect(() => {
     if (warehousesData) {
       setWarehouses(warehousesData);
-      if (currentUser.role === "admin" && warehousesData.length > 0) {
+      if (currentUser.role === "admin" && warehousesData.length > 0 && !selectedWarehouse) {
         setSelectedWarehouse(warehousesData[0]._id);
       }
     }
   }, [warehousesData]);
-
-  // Fetch CashIn data from backend (replace with your API)
-  useEffect(() => {
-    async function fetchCashIn() {
-      try {
-        const res = await fetch(
-          `https://your-api.com/cashin?warehouse=${selectedWarehouse}`
-        );
-        const data = await res.json();
-        setCashInData(data);
-      } catch (err) {
-        console.log("CashIn fetch error:", err);
-      }
-    }
-
-    if (selectedWarehouse) fetchCashIn();
-  }, [selectedWarehouse]);
 
   // Header with print button
   useLayoutEffect(() => {
@@ -96,23 +88,7 @@ console.log("CashInData:", cashInData);
   }, [navigation]);
 
   // Filter data by role, warehouse, and date
-  const filteredData = cashInData
-  ? cashInData.filter((item) => {
-      const itemDate = new Date(item.date);
-      const matchesDate =
-        (isAfter(itemDate, fromDate) || itemDate.toDateString() === fromDate.toDateString()) &&
-        (isBefore(itemDate, toDate) || itemDate.toDateString() === toDate.toDateString());
-
-      const matchesWarehouse =
-        currentUser.role === "admin"
-          ? selectedWarehouse
-            ? item.warehouse === selectedWarehouse
-            : true
-          : item.warehouse === currentUser.warehouse;
-
-      return matchesDate && matchesWarehouse;
-    })
-  : [];
+  const filteredData = cashInData?.transactions || [];
 
   return (
     <View className="flex-1 bg-dark p-2">
@@ -189,12 +165,14 @@ console.log("CashInData:", cashInData);
       {/* List */}
       <FlatList
         data={filteredData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) =>
+          item?._id || item.id || index.toString()
+        }
         renderItem={({ item }) => (
           <View className="bg-black-200 p-4 rounded-xl mb-3">
             <Text className="text-white font-semibold">{item.source}</Text>
             <View className="flex-row justify-between mt-2">
-              <Text className="text-gray-400">{item.date}</Text>
+              <Text className="text-gray-400">{format(new Date(item.createdAt), "dd MMM yyyy")}</Text>
               <Text className="text-green-400 font-bold">+ {item.amount.toLocaleString()} BDT</Text>
             </View>
           </View>

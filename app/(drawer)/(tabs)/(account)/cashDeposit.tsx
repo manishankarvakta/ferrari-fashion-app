@@ -1,12 +1,13 @@
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { useAddBalanceTransactionMutation } from "@/store/api/transactionApi";
-import { useWarehouseQuery } from "@/store/api/warehouseApi";
+import { useAddTransactionMutation } from "@/store/api/transactionApi";
+import { useUpdateWarehouseMutation, useWarehouseQuery } from "@/store/api/warehouseApi";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -40,7 +41,8 @@ const CashDepositDetails = () => {
     }
   }, [data, isSuccess]);
 
-  const [createTransaction] = useAddBalanceTransactionMutation();
+  const [createTransaction] = useAddTransactionMutation();
+  const [updateWarehouse] = useUpdateWarehouseMutation();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -127,14 +129,22 @@ const CashDepositDetails = () => {
 
   const handleSubmit = async () => {
     try {
-      await createTransaction(formData as any).unwrap();
+      const payload = {
+        ...formData,
+        date: formData.date.toISOString(),
+      };
+
+      const response = await createTransaction(payload as any).unwrap();
+      console.log("Transaction response:", response);
+
+      router.back();
+
     } catch (error) {
-
-      // console.error("Error creating transaction:", error);
-
+      console.error("Error creating deposit:", error);
+      const errorMessage = error?.data?.error || error?.message || "Failed to create transaction. Please try again.";
+      const displayMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+      Alert.alert("Error", displayMessage);
     }
-    router.back();
-
   };
 
   const formatDate = (date: Date) => {

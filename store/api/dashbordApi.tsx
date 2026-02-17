@@ -10,9 +10,13 @@ const DashbordApi = createApi({
       query: ({ date, warehouse }) => `/dashboard/byDate/${warehouse}/${date}`,
       providesTags: ["Dashbord"],
     }),
+    pettyCashSummary: builder.query<any, string>({
+      query: (warehouseId) => `/petty-cash-summary/${warehouseId}`,
+      providesTags: ["Dashbord"],
+    }),
   }),
 });
 
-export const { useDashbordQuery } = DashbordApi;
+export const { useDashbordQuery, usePettyCashSummaryQuery } = DashbordApi;
 
 export default DashbordApi;

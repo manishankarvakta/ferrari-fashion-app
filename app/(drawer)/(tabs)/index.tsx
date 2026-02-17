@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { subDays } from "date-fns/subDays";
 import { router } from "expo-router";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Dimensions,
   RefreshControl,
@@ -47,7 +47,32 @@ export default function PosDashboard() {
     { warehouse: warehouse, date: startDate, type: type } as any,
     { skip: !userInfo } // Skip query until userInfo is available
   );
-  console.log("Dashboard Data:", dashboardData);
+
+  // Backend route doesn't exist yet, so we'll calculate from dashboard data
+  // const { data: pettyCashData, error: pettyCashError, isLoading: pettyCashLoading, refetch: pettyRefetch } = usePettyCashSummaryQuery(warehouse, {
+  //   skip: !userInfo || !warehouse || warehouse === "all"
+  // });
+
+  // Calculate petty cash summary from dashboard data
+  const pettyCashData = useMemo(() => {
+    if (!dashboardData?.accountsData) return null;
+
+    const totalDeposit = dashboardData.accountsData.deposit?.totalAmount || 0;
+    const totalCashOut = dashboardData.accountsData.cashOut?.totalAmount || 0;
+    const balance = totalDeposit - totalCashOut;
+
+    return {
+      summary: {
+        totalDeposit,
+        totalCashOut,
+        balance
+      }
+    };
+  }, [dashboardData]);
+
+
+
+
 
   const { data: userPhoto } = useGetuserPhotoQuery({ id: userInfo?.id });
 
@@ -156,7 +181,10 @@ export default function PosDashboard() {
   };
   const { data: warehouseInfo } = useWarehouseQuery(userInfo?.warehouse, { skip: !userInfo?.warehouse });
 
-  const Balance = warehouseInfo?.currentBalance || 0;
+  const cashIn = warehouseInfo?.totalCashIn || 0;
+  const cashOut = warehouseInfo?.totalCashOut || 0;
+  const Balance = cashIn - cashOut;
+
 
   useEffect(() => {
 
@@ -254,6 +282,42 @@ export default function PosDashboard() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Lifetime Petty Cash Summary */}
+        {/* {pettyCashData && (
+          <View className="mb-4">
+            <View className="bg-black-200 p-4 rounded-xl">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Ionicons name="cash" size={20} color="#fdb714" />
+                <Text className="text-white text-lg font-pbold">Petty Cash Summary</Text>
+              </View>
+
+              <View className="flex-row justify-between mb-2">
+                <View>
+                  <Text className="text-gray-400 text-xs">Total Deposit</Text>
+                  <Text className="text-white text-lg font-psemibold">
+                    {pettyCashData?.summary?.totalDeposit || 0}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="text-gray-400 text-xs">Total Cash Out</Text>
+                  <Text className="text-white text-lg font-psemibold">
+                    {pettyCashData?.summary?.totalCashOut || 0}
+                  </Text>
+                </View>
+              </View>
+
+              <View className="h-[1px] bg-white/10 my-2" />
+
+              <View className="flex-row justify-between items-center">
+                <Text className="text-gray-300 font-pmedium">Net Cash Balance</Text>
+                <Text className="text-primary text-xl font-pbold">
+                  {pettyCashData?.summary?.balance || 0}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )} */}
 
         {/* Stats Grid */}
         {/* <StatsGrid stats={statsData} /> */}
