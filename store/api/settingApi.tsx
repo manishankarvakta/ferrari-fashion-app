@@ -1,9 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Setting } from "@/models/settingModel";
 import { BASE_URL } from "@/constants/baseUrl";
-
-// const BASE_URL = 'http://localhost:5001/api';
-console.log(BASE_URL);
+import { Setting } from "@/models/settingModel";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const SettingApi = createApi({
   reducerPath: "SettingApi",

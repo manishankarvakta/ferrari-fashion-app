@@ -110,7 +110,7 @@ const CustomerDetails = () => {
           <TouchableOpacity
             disabled={!data?.customer}
             onPress={() => router.push({
-              pathname: '/customer/customerLadger',
+              pathname: '/customer/customerLedger',
               params: { id: Array.isArray(id) ? id[0] : id }
             })}
             className="flex flex-row items-center bg-primary px-4 py-2 rounded-lg"

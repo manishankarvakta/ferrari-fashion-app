@@ -23,7 +23,7 @@ const CustomerLedger = () => {
   const { data, isLoading, isFetching, refetch } = useGetCustomerByIdQuery(
     {
       id: customerId,
-      date: new Date().toDateString(), // Current date
+      date: new Date().toDateString(),
       isDate: 'all', // Get all transactions (not filtered by date)
     },
     { skip: !customerId }

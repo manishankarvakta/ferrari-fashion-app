@@ -13,21 +13,21 @@
       "bundleIdentifier": "com.manishankarvakta.FFApp"
     },
     "android": {
-  "adaptiveIcon": {
-    "foregroundImage": "./assets/images/icon.png",
-    "backgroundColor": "#000000"
-  },
-  "edgeToEdgeEnabled": false,
-  "package": "com.manishankarvakta.FFApp",
-  "blockedPermissions": [
-    "com.google.android.gms.permission.AD_ID"
-  ],
-  "versionCode": 4,
-  "navigationBar": {
-    "visible": true,
-    "backgroundColor": "#000000"
-  }
-},
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#000000"
+      },
+      "edgeToEdgeEnabled": false,
+      "package": "com.manishankarvakta.FFApp",
+      "blockedPermissions": [
+        "com.google.android.gms.permission.AD_ID"
+      ],
+      "versionCode": 4,
+      "navigationBar": {
+        "visible": true,
+        "backgroundColor": "#000000"
+      }
+    },
     "web": {
       "bundler": "metro",
       "output": "static",

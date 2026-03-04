@@ -79,6 +79,7 @@
     "@babel/plugin-transform-class-properties": "^7.27.1",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
     "@babel/plugin-transform-object-rest-spread": "^7.28.4",
+    "@react-native-community/cli": "^20.1.2",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/react": "~19.1.10",
     "@types/tailwindcss": "^3.0.11",

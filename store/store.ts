@@ -12,11 +12,14 @@ import {
 } from "redux-persist";
 
 // Example slice reducer (you can replace this with your actual slice)
+import { AccountApi } from "./api/accountApi";
+import { AccountHeadApi } from "./api/accountHeadApi";
 import CustomerApi from "./api/customerApi";
 import DashboarApi from "./api/dashbordApi";
 import ProductApi from "./api/productApi";
 import PurchaseApi from "./api/purchasApi";
 import SaleApi from "./api/saleApi";
+import SearchApi from "./api/searchApi";
 import SettingApi from "./api/settingApi";
 import StockApi from "./api/stockApi";
 import SupplierApi from "./api/supplierApi";
@@ -50,6 +53,9 @@ const rootReducers = combineReducers({
   [SettingApi.reducerPath]: SettingApi.reducer,
   [UploadApi.reducerPath]: UploadApi.reducer,
   [PurchaseApi.reducerPath]: PurchaseApi.reducer,
+  [AccountApi.reducerPath]: AccountApi.reducer,
+  [AccountHeadApi.reducerPath]: AccountHeadApi.reducer,
+  [SearchApi.reducerPath]: SearchApi.reducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducers);
@@ -74,6 +80,9 @@ export const store = configureStore({
       SettingApi.middleware,
       UploadApi.middleware,
       PurchaseApi.middleware,
+      AccountApi.middleware,
+      AccountHeadApi.middleware,
+      SearchApi.middleware,
     ]),
 });
 
