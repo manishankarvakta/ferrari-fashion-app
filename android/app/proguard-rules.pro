@@ -12,3 +12,11 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# Important: Keep line numbers for Play Store crash reporting
+-keepattributes LineNumberTable,SourceFile
+
+# Preserve React Native core so app functionality doesn't break
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.yoga.** { *; }
+-dontwarn com.facebook.react.**
