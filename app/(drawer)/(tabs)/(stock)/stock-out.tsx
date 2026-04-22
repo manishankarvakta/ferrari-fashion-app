@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useLayoutEffect } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 const StockOut = () => {
@@ -75,7 +75,7 @@ const StockOut = () => {
       dispatch(setLoading(true));
       dispatch(clearError());
       const result = await createStock(stockItem).unwrap();
-      console.log("Stock added:", result);
+      // console.log("Stock added:", result);
 
       dispatch(resetStockItem());
       router.back();
