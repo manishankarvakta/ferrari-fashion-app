@@ -17,6 +17,8 @@ import { StatItem, StatsGrid } from "./StatsGrid";
 import { StockListItem } from "./StockListItem";
 import { WelcomeCard } from "./WelcomeCard";
 
+import ScreenLoader from "./ScreenLoader";
+
 export {
   CustomButton,
   CustomDrawerToggleButton,
@@ -30,6 +32,7 @@ export {
   Loader,
   PaymentChart,
   SearchBar,
+  ScreenLoader,
   StatItem,
   StatsGrid,
   StockListItem,

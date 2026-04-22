@@ -50,11 +50,14 @@ interface GlobalProviderProps {
 }
 
 const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
-  const [loggedIn, setLoggedIn] = useState(false);
-  // const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const user = useSelector((state: any) => state.user);
+  const [loggedIn, setLoggedIn] = useState(user?.isLoggedIn || false);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    setLoggedIn(user?.isLoggedIn || false);
+  }, [user?.isLoggedIn]);
 
   useEffect(() => {
     // Initialize auth state - check if user is logged in
@@ -62,7 +65,7 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     // For now, we'll just set loading to false
     setTimeout(() => {
       setLoading(false);
-    }, 100);
+    }, 500);
   }, []);
 
   const fetchUser = () => {
@@ -73,7 +76,6 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   const logout = () => {
     console.log("Logging out...");
     dispatch(logoutUser());
-    setLoggedIn(false);
   };
 
   const storeData = async (key: string, value: any) => {

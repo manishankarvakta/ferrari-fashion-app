@@ -11,6 +11,8 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { StatusBar } from "expo-status-bar";
 import { useProxyPhotoUrlQuery } from "@/store/api/uploadApi";
 
+import { ScreenLoader } from "@/components";
+
 const Profile = () => {
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
@@ -98,6 +100,9 @@ const Profile = () => {
     router.push("/user/add-user");
   };
 
+  if (isLoading) {
+    return <ScreenLoader message="Loading users..." />;
+  }
   
   return (
     <ScrollView className="flex-1 bg-dark ">

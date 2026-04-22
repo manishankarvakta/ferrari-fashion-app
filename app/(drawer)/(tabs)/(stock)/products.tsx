@@ -1,4 +1,4 @@
-import { CustomDrawerToggleButton } from "@/components";
+import { CustomDrawerToggleButton, ScreenLoader } from "@/components";
 import { StockListItem } from "@/components/StockListItem";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useProductsQuery } from "@/store/api/productApi";
@@ -92,6 +92,11 @@ const StockIndex = () => {
    // Total quantity calculation
   const totalQuantity =
     data?.reduce((total, item) => total + (item.currentStock || 0), 0) || 0;
+
+  if (isLoading && !refreshing) {
+    return <ScreenLoader message="Loading products..." />;
+  }
+
   return (
     <View className="flex-1 bg-dark">
 

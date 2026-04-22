@@ -39,8 +39,10 @@ const profile = () => {
     });
   }, [navigation]);
 
+  const { userInfo, logout } = useGlobalContext();
   const handleLogout = () => {
     console.log("Logout pressed");
+    logout();
   };
 
   const handleEditProfile = () => {
@@ -48,8 +50,7 @@ const profile = () => {
     // Example: navigate to edit profile screen
     router.push(`/user/${userInfo?.id}`);
   };
- const { userInfo } = useGlobalContext();
-   const {data: userPhoto} = useGetuserPhotoQuery({id:userInfo?.id});
+  const {data: userPhoto} = useGetuserPhotoQuery({id:userInfo?.id});
  
 //  console.log(userInfo)
   

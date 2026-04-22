@@ -3,6 +3,7 @@ import { useGlobalContext } from "@/context/GlobalProvider";
 import { router, useNavigation } from "expo-router";
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +14,8 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+
+import { CustomButton } from "@/components";
 
 import CustomDropdown from "@/components/CustomDropdown";
 import { useAddUserMutation } from "@/store/api/userApi";
@@ -33,7 +36,7 @@ const AddUser = () => {
     },
   ]);
 
-  const [addNewUser] = useAddUserMutation();
+  const [addNewUser, { isLoading: isAdding }] = useAddUserMutation();
 
   const [type, setType] = useState([
     { label: "Admin", value: "admin" },
@@ -119,9 +122,12 @@ const AddUser = () => {
       console.log("FORM DATA", form);
       const response = await addNewUser(form).unwrap();
       console.log("User added successfully:", response);
-      router.back();
+      Alert.alert("Success", "User added successfully!", [
+        { text: "OK", onPress: () => router.push("/user") }
+      ]);
     } catch (error) {
       console.error("Error adding User:", error);
+      Alert.alert("Error", "Failed to add user. Please try again.");
     }
   };
 
@@ -229,14 +235,12 @@ const AddUser = () => {
       </View>
 
 
-        <TouchableOpacity
-          onPress={handleCreateUser}
-          className="h-14 w-full justify-center items-center rounded-full bg-primary mt-2 mb-4"
-        >
-          <Text className="text-white text-center text-md font-pmedium">
-            Add User
-          </Text>
-        </TouchableOpacity>
+        <CustomButton
+          title={isAdding ? "Adding User..." : "Add User"}
+          handlePress={handleCreateUser}
+          isLoading={isAdding}
+          containerStyles="bg-primary mt-2 mb-4"
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

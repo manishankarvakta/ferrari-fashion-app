@@ -52,28 +52,11 @@ const CustomDrawerComponent = (props: any) => {
   // console.log(userInfo)
 
   const pathname = usePathname();
-  const { loading, loggedIn, logout } = useGlobalContext();
-  // const router = useRouter();
-  const segments = useSegments();
-  const [isMounted, setIsMounted] = useState(false);
+  const { logout } = useGlobalContext();
 
   // console.log("userInfo", userInfo, );
 
-  const checkLogin = () => {
-    //@ts-ignore
-    if (!isMounted || segments?.length === 0) return;
-    if (!userInfo?.isLoggedIn) router.replace("/(auth)/sign-in");
-  };
 
-  useEffect(() => {
-    setIsMounted(true);
-    //   checkLogin()
-  }, []);
-
-  useEffect(() => {
-    // console.log("PATH:", pathname)
-    checkLogin();
-  }, [pathname, loggedIn, segments, isMounted]);
 
 
   return (
@@ -373,6 +356,19 @@ const CustomDrawerComponent = (props: any) => {
 
 
 const DrawerLayout = () => {
+  const { userInfo, loading } = useGlobalContext();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (loading || segments.length === 0) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!userInfo?.isLoggedIn && !inAuthGroup) {
+      router.replace("/(auth)/sign-in");
+    }
+  }, [userInfo?.isLoggedIn, segments, loading]);
+
   return (
     <Drawer
       drawerContent={(props) => <CustomDrawerComponent {...props} />}

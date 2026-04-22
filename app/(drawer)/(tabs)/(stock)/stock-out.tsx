@@ -1,3 +1,4 @@
+import { CustomButton } from "@/components";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAddStockMutation } from "@/store/api/stockApi";
 import {
@@ -13,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useLayoutEffect } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
 const StockOut = () => {
@@ -78,7 +79,9 @@ const StockOut = () => {
       // console.log("Stock added:", result);
 
       dispatch(resetStockItem());
-      router.back();
+      Alert.alert("Success", "Stock removed successfully!", [
+        { text: "OK", onPress: () => router.push("/(drawer)/(tabs)/(stock)/products") }
+      ]);
     } catch (error) {
       console.error("Error adding stock:", error);
       dispatch(setError("Failed to add stock. Please try again."));
@@ -142,19 +145,12 @@ const StockOut = () => {
           </View>
 
           {/* Submit Button */}
-          <TouchableOpacity
-            className={`w-full p-4 rounded-lg mb-10 ${isLoading || !stockItem.stock || !stockItem.note.trim()
-                ? "bg-gray-400"
-                : "bg-red-600"
-              }`}
-            onPress={handleSubmit}
-            disabled={isLoading || !stockItem.stock || !stockItem.note.trim()}
-            activeOpacity={0.8}
-          >
-            <Text className="text-white text-center font-bold text-md">
-              {isLoading ? "Removing Stock..." : "Stock Out"}
-            </Text>
-          </TouchableOpacity>
+          <CustomButton
+            title={isLoading ? "Removing Stock..." : "Stock Out"}
+            handlePress={handleSubmit}
+            isLoading={isLoading}
+            containerStyles={`w-full ${isLoading || !stockItem.stock || !stockItem.note.trim() ? "bg-gray-400" : "bg-red-600"} rounded-lg mb-10`}
+          />
         </View>
       </ScrollView>
     </View>

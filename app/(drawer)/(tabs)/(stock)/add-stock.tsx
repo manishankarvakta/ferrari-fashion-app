@@ -1,6 +1,7 @@
 import photo from "@/assets/images/product.jpg";
 import { DatePickerField } from "@/components/DatePickerField";
 import PhotoUploader from "@/components/PhotoUploader";
+import { CustomButton } from "@/components";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { useAddProductMutation } from "@/store/api/productApi";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,7 +42,7 @@ const AddStock = () => {
     }));
   }, [userInfo?.warehouse]);
 
-  const [createProduct] = useAddProductMutation();
+  const [createProduct, { isLoading: isAdding }] = useAddProductMutation();
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({
@@ -58,14 +59,16 @@ const AddStock = () => {
       return;
     }
 
-   
-
-    
-    // console.log("Complete Form Data:", formData);
-    // console.log("============================");
-    const response = await createProduct(formData);
-    console.log("Response:", response);
-    router.back();
+    try {
+      const result = await createProduct(formData).unwrap();
+      console.log("Response:", result);
+      Alert.alert("Success", "Product added successfully!", [
+        { text: "OK", onPress: () => router.push("/(drawer)/(tabs)/(stock)/products") }
+      ]);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      Alert.alert("Error", "Failed to add product. Please try again.");
+    }
   };
   const navigation = useNavigation();
   useLayoutEffect(() => {
@@ -195,19 +198,19 @@ const AddStock = () => {
             className="flex-1 bg-gray-600 p-4 rounded-lg flex-row items-center justify-center"
             onPress={() => router.back()}
             activeOpacity={0.8}
+            disabled={isAdding}
           >
             <Ionicons name="close-outline" size={20} color="#ffffff" />
             <Text className="text-white font-pbold ml-2">Cancel</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            className="flex-1 bg-primary p-4 rounded-lg flex-row items-center justify-center"
-            onPress={handleSubmit}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="checkmark-outline" size={20} color="#000000" />
-            <Text className="text-black font-pbold ml-2">Save Stock</Text>
-          </TouchableOpacity>
+          <CustomButton
+            title={isAdding ? "Saving..." : "Save Stock"}
+            handlePress={handleSubmit}
+            isLoading={isAdding}
+            containerStyles="flex-1 bg-primary rounded-lg"
+            textStyles="text-black font-pbold"
+          />
         </View>
       </View>
     </ScrollView>
